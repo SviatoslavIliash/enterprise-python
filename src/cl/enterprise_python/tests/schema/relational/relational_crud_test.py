@@ -83,6 +83,7 @@ class RelCrudTest:
             RelationalSwap(
                 trade_id=f"T{i + 1}",
                 trade_type="Swap",
+                notional= (i+1)*100,
                 legs=[fixed_legs[i], floating_legs[i]],
             )
             for i in range(0, 2)
@@ -93,6 +94,7 @@ class RelCrudTest:
             RelationalBond(
                 trade_id=f"T{i + 1}",
                 trade_type="Bond",
+                notional=(i + 1) * 100,
                 bond_ccy=ccy_list[i % ccy_count],
             )
             for i in range(2, 3)
@@ -187,12 +189,23 @@ class RelCrudTest:
                         for trade in gbp_fixed_swaps
                     ]
                 )
+                notional_trades = list(
+                    session.query(RelationalTrade).where(RelationalTrade.notional>=200).order_by(RelationalTrade.trade_id)
+                )  # noqa
+
+                # Add the result to approvaltests file
+                result += "Trades where notional >= 200:\n" + "".join(
+                    [
+                        f"    trade_id={trade.trade_id} trade_type={trade.trade_type} notional={trade.notional}\n"
+                        for trade in notional_trades
+                    ]
+                )
 
         # Verify result
         at.verify(result)
 
         # Drop database to clean up after the test
-        self.clean_up()
+        #self.clean_up()
 
 
 if __name__ == "__main__":
